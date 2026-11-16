@@ -1,18 +1,43 @@
 local G = getgenv()
 
+
+local function getMemoryMb()
+    local Stats = game:GetService("Stats")
+
+    if not Stats.MemoryTrackingEnabled then
+        return nil
+    end
+
+    local ok, value = pcall(function()
+        return Stats:GetTotalMemoryUsageMb()
+    end)
+
+    return ok and value or nil
+end
+
+-- ติดตั้งตัวกรองชื่อรีโมต
 local ok, err = pcall(function()
     if G.RaycityRemoteNameFilterInstalled then
+        print("[Raycity] ")
         return
     end
 
+    assert(
+        type(getrawmetatable) == "function"
+            and type(setreadonly) == "function"
+            and type(newcclosure) == "function"
+            and type(getnamecallmethod) == "function",
+        "Executor   "
+    )
+
     local mt = getrawmetatable(game)
-    assert(type(mt) == "table", "No game metatable")
+    assert(type(mt) == "table", " game metatable")
 
     local oldNamecall = mt.__namecall
     assert(
         type(oldNamecall) == "function",
-        "__namecall  " .. type(oldNamecall)
-            .. " Rejoin"
+        "__namecall เป็น " .. type(oldNamecall)
+            .. " "
     )
 
     local hook = newcclosure(function(self, ...)
@@ -37,7 +62,7 @@ local ok, err = pcall(function()
         return oldNamecall(self, ...)
     end)
 
-    assert(type(hook) == "function", "newcclosure")
+    assert(type(hook) == "function", "newcclosure ")
 
     setreadonly(mt, false)
     local installed, installError = pcall(function()
@@ -46,9 +71,16 @@ local ok, err = pcall(function()
     setreadonly(mt, true)
 
     assert(installed, tostring(installError))
+
     G.RaycityRemoteNameFilterInstalled = true
+    print("[Raycity] Done")
 end)
 
 if not ok then
-    warn("[Raycity] " .. tostring(err))
+    warn("[Raycity] Error: " .. tostring(err))
+end
+
+local memoryMb = getMemoryMb()
+if memoryMb then
+    print(string.format("[Raycity] RAM: %.2f MB", memoryMb))
 end
