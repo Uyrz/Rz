@@ -4,7 +4,7 @@ local G = getgenv()
 local function getMemoryMb()
     local Stats = game:GetService("Stats")
 
-    if not Stats.MemoryTrackingEnabled then
+    if Stats.MemoryTrackingEnabled then
         return nil
     end
 
